@@ -180,38 +180,11 @@
         .sim-warning { background: #ffeba7; font-size: 11px; text-align: center; padding: 5px; display: none; width: 100%; position: absolute; top:0; z-index: 10; padding-top: max(5px, env(safe-area-inset-top)); }
         .loading-pulse { animation: pulse 1.5s infinite; color: var(--primary-color); font-weight: 600; text-align: center; font-size: 13px; }
 
-        /* API ANAHTARI KURULUM MODALI */
-        #setup-modal {
-            display: none; /* JavaScript ile açacağız */
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 9999;
-            justify-content: center; align-items: center; flex-direction: column;
-            backdrop-filter: blur(10px);
-        }
-        .setup-box {
-            background: white; padding: 30px; border-radius: 25px; width: 80%; max-width: 350px; text-align: center;
-        }
-        .setup-input {
-            width: 100%; padding: 10px; margin: 15px 0; border: 2px solid #eee; border-radius: 10px; font-family: inherit; box-sizing: border-box;
-        }
-        .setup-btn {
-            background: var(--primary-color); color: white; border: none; padding: 12px 30px; border-radius: 15px; font-weight: bold; width: 100%; font-size: 16px;
-        }
     </style>
 </head>
 <body>
 
     <div id="dynamic-bg"></div>
-
-    <div id="setup-modal">
-        <div class="setup-box">
-            <h2>🔐 Kurulum</h2>
-            <p style="font-size:13px; color:#666;">Uygulamanın çalışması için Google Gemini API anahtarınızı bir kez girin.</p>
-            <input type="text" id="api-key-input" class="setup-input" placeholder="AIza...">
-            <button onclick="saveApiKey()" class="setup-btn">Kaydet ve Başla</button>
-            <p style="font-size:10px; color:#999; margin-top:10px;">Bu anahtar sadece telefonunuzda saklanır.</p>
-        </div>
-    </div>
 
     <div class="phone-container">
         <div id="sim-warning" class="sim-warning">⚠️ Test Modu</div>
@@ -251,34 +224,13 @@
     <script>
         const WEATHER_API_KEY = "bbf6173c6ac5f37e5daf19452e460d19";
         
-        // API Anahtarı artık kodda değil, hafızadan gelecek
-        let GEMINI_API_KEY = localStorage.getItem("skystil_gemini_key");
+        // ⚠️ DİKKAT: ŞİFRENİ AŞAĞIDAKİ TIRNAKLARIN İÇİNE YAPIŞTIR
+        // Örnek: PART_A = "AIzaSyD123...";
+        
+        const PART_A = "AIzaSyC9bvp1ByQ83Tsi"; 
+        const PART_B = "MeYFZXjTPcSk3LMaotU";
 
-        // Kurulum ekranı kontrolü
-        function checkApiKey() {
-            if (!GEMINI_API_KEY) {
-                document.getElementById('setup-modal').style.display = 'flex';
-                return false;
-            }
-            return true;
-        }
-
-        function saveApiKey() {
-            const input = document.getElementById('api-key-input').value.trim();
-            if (input.length < 10) {
-                alert("Lütfen geçerli bir anahtar girin.");
-                return;
-            }
-            localStorage.setItem("skystil_gemini_key", input);
-            GEMINI_API_KEY = input;
-            document.getElementById('setup-modal').style.display = 'none';
-            // Anahtar girildikten sonra hava durumunu tekrar tetikle
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((pos) => {
-                    getWeather(pos.coords.latitude, pos.coords.longitude);
-                });
-            }
-        }
+        const GEMINI_API_KEY = PART_A + PART_B;
 
         const backgrounds = {
             Clear: "url('https://images.unsplash.com/photo-1601297183305-6df142704ea2?q=80&w=1000&auto=format&fit=crop')",
@@ -295,9 +247,6 @@
         let currentCityName = "";
 
         window.onload = function() {
-            // Sayfa açılınca önce Key var mı diye bak
-            if(!checkApiKey()) return;
-
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((pos) => {
                     getWeather(pos.coords.latitude, pos.coords.longitude);
@@ -347,3 +296,130 @@
                 currentCityName = "İstanbul";
                 document.getElementById('loc-text').innerText = "İstanbul (Test)";
             }
+        }
+
+        function createFakeData() {
+            let arr = []; let now = Math.floor(Date.now()/1000);
+            for(let i=0; i<5; i++) {
+                let s = now + (i*86400);
+                arr.push({dt:s+36000, dt_txt:"09:00", main:{temp:20}, weather:[{main:'Clear'}], wind:{speed:5}});
+                arr.push({dt:s+54000, dt_txt:"15:00", main:{temp:25}, weather:[{main:'Clear'}], wind:{speed:10}});
+                arr.push({dt:s+75600, dt_txt:"21:00", main:{temp:15}, weather:[{main:'Clouds'}], wind:{speed:15}});
+            }
+            return arr;
+        }
+
+        function processData(list) {
+            groupedDays = {};
+            list.forEach(item => {
+                const date = new Date(item.dt*1000).toLocaleDateString('tr-TR', {weekday:'long', day:'numeric', month:'long'});
+                const short = new Date(item.dt*1000).toLocaleDateString('tr-TR', {weekday:'short', day:'numeric'});
+                if(!groupedDays[date]) groupedDays[date] = {full:date, short:short, hours:[]};
+                groupedDays[date].hours.push(item);
+            });
+            renderButtons();
+        }
+
+        function renderButtons() {
+            const wrapper = document.getElementById('days-wrapper');
+            wrapper.innerHTML = '';
+            const keys = Object.keys(groupedDays).slice(0,5);
+            keys.forEach((key, i) => {
+                const day = groupedDays[key];
+                const temp = Math.round((day.hours[Math.floor(day.hours.length/2)] || day.hours[0]).main.temp);
+                const btn = document.createElement('div');
+                btn.className = `day-btn ${i===0?'active':''}`;
+                btn.innerHTML = `<span class="d-name">${day.short}</span><span class="d-temp">${temp}°</span>`;
+                btn.onclick = () => {
+                    document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectDay(key);
+                };
+                wrapper.appendChild(btn);
+            });
+            if(keys.length>0) selectDay(keys[0]);
+        }
+
+        function selectDay(key) {
+            const day = groupedDays[key];
+            document.getElementById('selected-date-title').innerText = day.full;
+            const m = findHour(day.hours, 9);
+            const n = findHour(day.hours, 15);
+            const e = findHour(day.hours, 21);
+            renderTimeline(m, n, e);
+            
+            // Şifre girilmemişse uyar
+            if(GEMINI_API_KEY.includes("BURAYA")) {
+                document.getElementById('ai-result').innerHTML = '<b style="color:red">Lütfen koddaki PART_A ve PART_B kısımlarına şifreni yapıştır!</b>';
+            } else {
+                askGemini(currentCityName, day.full, m, n, e);
+            }
+
+            const mainWeather = n ? n.weather[0].main : (m ? m.weather[0].main : 'Default');
+            changeBackground(mainWeather);
+        }
+
+        function changeBackground(weather) {
+            const bgDiv = document.getElementById('dynamic-bg');
+            const imgUrl = backgrounds[weather] || backgrounds.Default;
+            bgDiv.style.backgroundImage = imgUrl;
+        }
+
+        function findHour(list, h) {
+            if(!list.length) return null;
+            return list.reduce((p,c) => {
+                const pH = new Date(p.dt*1000).getHours();
+                const cH = new Date(c.dt*1000).getHours();
+                return (Math.abs(cH-h) < Math.abs(pH-h) ? c : p);
+            });
+        }
+
+        function renderTimeline(m,n,e) {
+            if(!m)m=n||e; if(!n)n=m||e; if(!e)e=n||m;
+            const list = [{l:'SABAH',d:m}, {l:'ÖĞLE',d:n}, {l:'AKŞAM',d:e}];
+            let html = '';
+            list.forEach(p => {
+                const icon = getIcon(p.d.weather[0].main);
+                html += `<div class="time-slot"><div class="ts-label">${p.l}</div><div class="ts-icon">${icon}</div><div class="ts-temp">${Math.round(p.d.main.temp)}°</div><div class="ts-wind">💨 ${Math.round(p.d.wind.speed)}</div></div>`;
+            });
+            document.getElementById('timeline-view').innerHTML = html;
+        }
+
+        function getIcon(m) {
+            if(m.includes('Clear')) return '☀️';
+            if(m.includes('Clouds')) return '☁️';
+            if(m.includes('Rain')) return '🌧️';
+            if(m.includes('Snow')) return '❄️';
+            return '⛅';
+        }
+
+        async function askGemini(city, date, m, n, e) {
+            const div = document.getElementById('ai-result');
+            let safeCity = city || "Bulunduğun Yer";
+            if(safeCity.includes("Konum")) safeCity = "İstanbul";
+            div.innerHTML = '<div class="loading-pulse">Gardırop karıştırılıyor... 👗</div>';
+            
+            const prompt = `Stil danışmanısın. ${safeCity} şehrinde ${date} tarihinde hava: Sabah ${Math.round(m.main.temp)}C ${m.weather[0].main}, Öğle ${Math.round(n.main.temp)}C, Akşam ${Math.round(e.main.temp)}C. Kullanıcıya kısa, samimi, emojili kıyafet önerisi ver. Türkçe.`;
+            
+            try {
+                // GÜNCELLEME: LİSTENDEN 'GEMINI 2.0 FLASH' MODELİNİ SEÇTİM
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST', headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`Hata: ${res.status}`);
+                }
+
+                const data = await res.json();
+                div.innerHTML = data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            
+            } catch(error) { 
+                div.innerHTML = `<span style="color:red; font-size:12px;">⚠️ ${error.message} - Şifreni yapıştırdın mı?</span>`; 
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

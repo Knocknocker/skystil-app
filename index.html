@@ -17,7 +17,7 @@
         :root {
             --primary-color: #4facfe;
             --secondary-color: #00f2fe;
-            --glass-bg: rgba(255, 255, 255, 0.85); /* Kutular için opaklık */
+            --glass-bg: rgba(255, 255, 255, 0.85);
             --glass-border: rgba(255, 255, 255, 0.4);
             --text-dark: #2c3e50;
             --text-light: #7f8c8d;
@@ -27,7 +27,6 @@
             font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            /* Flex center kaldırıldı, artık tam ekran */
             min-height: 100vh;
             overflow: hidden;
             background-color: #333;
@@ -41,38 +40,37 @@
         }
         @keyframes breathe { from { transform: scale(1); } to { transform: scale(1.1); } }
         
-        /* Arka planı biraz karartan katman (yazılar okunsun diye) */
         body::after {
             content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.2); z-index: -1; /* Karartma azaltıldı */
+            background: rgba(0, 0, 0, 0.2); z-index: -1;
         }
 
-        /* --- ANA DEĞİŞİKLİK BURADA: Kutu iptal, Tam Ekran Modu --- */
         .phone-container {
-            background: transparent; /* Arka plan şeffaf yapıldı */
-            backdrop-filter: none; /* Blur kaldırıldı */
+            background: transparent;
+            backdrop-filter: none;
             border: none;
             width: 100%; 
-            height: 100vh; /* Tam boy */
-            max-width: none; /* Genişlik sınırı kalktı */
+            height: 100vh;
+            max-width: none;
             border-radius: 0;
             box-shadow: none;
             overflow-y: auto; 
             position: relative; 
             display: flex; 
             flex-direction: column;
+            /* iOS'te kaydırma hissinin "yağ gibi" olması için: */
+            -webkit-overflow-scrolling: touch;
         }
         .phone-container::-webkit-scrollbar { display: none; }
 
         .header {
-            /* İPHONE ÇENTİK AYARI: safe-area-inset-top */
+            /* Üst Çentik Ayarı */
             padding-top: max(30px, env(safe-area-inset-top)); 
             padding-bottom: 10px;
             padding-left: 20px;
             padding-right: 20px;
             text-align: center; 
             flex-shrink: 0;
-            /* Header'ın arkasına hafif bir blur atalım ki logo net görünsün */
             background: linear-gradient(to bottom, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%);
         }
         
@@ -114,7 +112,7 @@
         }
 
         .location-badge {
-            background: rgba(255, 255, 255, 0.9); /* Biraz daha opak */
+            background: rgba(255, 255, 255, 0.9);
             color: var(--text-dark); padding: 8px 20px; border-radius: 30px;
             font-size: 14px; font-weight: 600; display: inline-flex; align-items: center;
             margin-top: 5px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: transform 0.2s;
@@ -134,11 +132,11 @@
 
         .days-container {
             display: flex; justify-content: space-between; padding: 10px 20px; gap: 8px; flex-shrink: 0;
-            overflow-x: auto; /* Küçük ekranlarda taşarsa kaydır */
+            overflow-x: auto;
         }
         .day-btn {
             flex: 1; border: none; 
-            background: rgba(255,255,255,0.7); /* Gün butonları biraz daha net */
+            background: rgba(255,255,255,0.7);
             border-radius: 20px; padding: 10px 2px; text-align: center; cursor: pointer; transition: all 0.3s; min-width: 50px;
             backdrop-filter: blur(5px);
         }
@@ -148,15 +146,23 @@
         .d-name { font-weight: 700; font-size: 12px; margin-bottom: 2px; display: block;}
         .d-temp { font-size: 13px; display: block;}
 
-        .content-area { padding: 20px; flex-grow: 1; padding-bottom: 40px; } /* Alt boşluk artırıldı */
+        /* --- DÜZELTME BURADA --- */
+        .content-area { 
+            padding: 20px; 
+            flex-grow: 1; 
+            /* İPHONE ALT ÇUBUK DÜZELTMESİ: */
+            /* 100px sabit boşluk + Cihazın kendi güvenli alanı kadar ekle */
+            padding-bottom: calc(100px + env(safe-area-inset-bottom)); 
+        } 
+        /* ----------------------- */
+
         #selected-date-title { 
             margin: 0 0 15px 0; 
-            color: white; /* Başlık rengi beyaz yapıldı çünkü arka plan renkli */
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Okunabilirlik için gölge */
+            color: white; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
             font-size: 18px; text-align: center; font-weight: 600; 
         }
 
-        /* Bilgi kutuları hala beyaz kalsın ki okunsun */
         .timeline-box {
             background: rgba(255, 255, 255, 0.9); 
             backdrop-filter: blur(10px);

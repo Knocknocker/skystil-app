@@ -1,234 +1,8 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SkyStil</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="icon.png">
-    <link rel="apple-touch-icon" href="icon.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#4facfe">
-
-    <style>
-        :root {
-            --primary-color: #4facfe;
-            --secondary-color: #00f2fe;
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.4);
-            --text-dark: #2c3e50;
-            --text-light: #7f8c8d;
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            overflow: hidden;
-            background-color: #333;
-        }
-
-        #dynamic-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-size: cover; background-position: center; z-index: -2;
-            transition: background-image 0.8s ease-in-out;
-            animation: breathe 20s infinite alternate;
-        }
-        @keyframes breathe { from { transform: scale(1); } to { transform: scale(1.1); } }
-        
-        body::after {
-            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.2); z-index: -1;
-        }
-
-        .phone-container {
-            background: transparent;
-            backdrop-filter: none;
-            border: none;
-            width: 100%; 
-            height: 100vh;
-            max-width: none;
-            border-radius: 0;
-            box-shadow: none;
-            overflow-y: auto; 
-            position: relative; 
-            display: flex; 
-            flex-direction: column;
-            /* iOS'te kaydırma hissinin "yağ gibi" olması için: */
-            -webkit-overflow-scrolling: touch;
-        }
-        .phone-container::-webkit-scrollbar { display: none; }
-
-        .header {
-            /* Üst Çentik Ayarı */
-            padding-top: max(30px, env(safe-area-inset-top)); 
-            padding-bottom: 10px;
-            padding-left: 20px;
-            padding-right: 20px;
-            text-align: center; 
-            flex-shrink: 0;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%);
-        }
-        
-        .logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
-            overflow: visible;
-        }
-        .logo-icon {
-            font-size: 42px; 
-            margin-right: 10px;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-            animation: floatIcon 3s ease-in-out infinite; 
-        }
-        @keyframes floatIcon {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-6px); }
-        }
-        .app-title {
-            margin: 0; font-size: 38px; 
-            line-height: 1; letter-spacing: -1.5px;
-            display: flex; align-items: baseline;
-        }
-        .sky-text {
-            color: var(--text-dark);
-            font-weight: 300; 
-        }
-        .stil-text {
-            font-weight: 800; 
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-style: italic;
-            margin-left: -2px;
-            padding-right: 10px; 
-            display: inline-block;
-        }
-
-        .location-badge {
-            background: rgba(255, 255, 255, 0.9);
-            color: var(--text-dark); padding: 8px 20px; border-radius: 30px;
-            font-size: 14px; font-weight: 600; display: inline-flex; align-items: center;
-            margin-top: 5px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: transform 0.2s;
-            backdrop-filter: blur(5px);
-        }
-        .location-badge:hover { transform: scale(1.05); }
-
-        .search-box {
-            display: none; margin-top: 15px; background: white; padding: 5px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .search-input {
-            padding: 8px 15px; border: none; outline: none; width: 65%; text-align: left; font-family: inherit; font-size: 14px; background: transparent;
-        }
-        .search-btn {
-            background: var(--primary-color); color: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; font-size: 14px; margin-left: 5px;
-        }
-
-        .days-container {
-            display: flex; justify-content: space-between; padding: 10px 20px; gap: 8px; flex-shrink: 0;
-            overflow-x: auto;
-        }
-        .day-btn {
-            flex: 1; border: none; 
-            background: rgba(255,255,255,0.7);
-            border-radius: 20px; padding: 10px 2px; text-align: center; cursor: pointer; transition: all 0.3s; min-width: 50px;
-            backdrop-filter: blur(5px);
-        }
-        .day-btn.active {
-            background: var(--primary-color); color: white; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
-        }
-        .d-name { font-weight: 700; font-size: 12px; margin-bottom: 2px; display: block;}
-        .d-temp { font-size: 13px; display: block;}
-
-        /* --- DÜZELTME BURADA --- */
-        .content-area { 
-            padding: 20px; 
-            flex-grow: 1; 
-            /* İPHONE ALT ÇUBUK DÜZELTMESİ: */
-            /* 100px sabit boşluk + Cihazın kendi güvenli alanı kadar ekle */
-            padding-bottom: calc(100px + env(safe-area-inset-bottom)); 
-        } 
-        /* ----------------------- */
-
-        #selected-date-title { 
-            margin: 0 0 15px 0; 
-            color: white; 
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            font-size: 18px; text-align: center; font-weight: 600; 
-        }
-
-        .timeline-box {
-            background: rgba(255, 255, 255, 0.9); 
-            backdrop-filter: blur(10px);
-            border-radius: 25px; padding: 15px; display: flex; justify-content: space-between; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-        .time-slot { text-align: center; flex: 1; border-right: 1px solid #ddd; }
-        .time-slot:last-child { border-right: none; }
-        .ts-label { font-size: 11px; color: var(--text-light); font-weight: 700; margin-bottom: 5px; }
-        .ts-icon { font-size: 28px; margin: 5px 0; display: block; }
-        .ts-temp { font-size: 18px; font-weight: 700; color: var(--text-dark); }
-        .ts-wind { font-size: 10px; color: #999; margin-top: 2px; }
-
-        .ai-box {
-            background: rgba(255, 255, 255, 0.95); 
-            backdrop-filter: blur(10px);
-            border-radius: 25px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-left: 4px solid var(--primary-color);
-        }
-        .ai-title { font-size: 13px; font-weight: 700; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
-        .ai-text { color: var(--text-dark); font-size: 14px; line-height: 1.6; }
-        
-        .sim-warning { background: #ffeba7; font-size: 11px; text-align: center; padding: 5px; display: none; width: 100%; position: absolute; top:0; z-index: 10; padding-top: max(5px, env(safe-area-inset-top)); }
-        .loading-pulse { animation: pulse 1.5s infinite; color: var(--primary-color); font-weight: 600; text-align: center; font-size: 13px; }
-    </style>
-</head>
-<body>
-
-    <div id="dynamic-bg"></div>
-
-    <div class="phone-container">
-        <div id="sim-warning" class="sim-warning">⚠️ Test Modu</div>
-        
-        <div class="header">
-            <div class="logo-container">
-                <span class="logo-icon">🌤️</span>
-                <h1 class="app-title">
-                    <span class="sky-text">Sky</span><span class="stil-text">Stil</span>
-                </h1>
-            </div>
-            
-            <div id="location-badge" class="location-badge" onclick="toggleSearch()">
-                <span style="margin-right:5px">📍</span> <span id="loc-text">Konum...</span>
-            </div>
-
-            <div id="search-box" class="search-box" style="display: flex; align-items: center;">
-                <input type="text" id="city-input" class="search-input" placeholder="Şehir (örn: Roma)">
-                <button onclick="searchCity()" class="search-btn">🔍</button>
-            </div>
-        </div>
-
-        <div class="days-container" id="days-wrapper"></div>
-
-        <div class="content-area">
-            <h3 id="selected-date-title">-</h3>
-            <div class="timeline-box" id="timeline-view"></div>
-            <div class="ai-box">
-                <span class="ai-title">✨ Stil Asistanın</span>
-                <div id="ai-result" class="ai-text">
-                    <div class="loading-pulse">Veriler işleniyor...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
+<script>
         const WEATHER_API_KEY = "bbf6173c6ac5f37e5daf19452e460d19";
-        const GEMINI_API_KEY = "AIzaSyAGdradWtxS8d2z8fKRkymtSFYPUrxAqcU"; 
+        
+        // DİKKAT: Buraya yeni aldığın anahtarı tırnak içine yapıştır 👇
+        const GEMINI_API_KEY = "AIzaSyC9bvp1ByQ83TsiMeYFZXjTPcSk3LMaotU"; 
 
         const backgrounds = {
             Clear: "url('https://images.unsplash.com/photo-1601297183305-6df142704ea2?q=80&w=1000&auto=format&fit=crop')",
@@ -389,16 +163,26 @@
             let safeCity = city || "Bulunduğun Yer";
             if(safeCity.includes("Konum")) safeCity = "İstanbul";
             div.innerHTML = '<div class="loading-pulse">Gardırop karıştırılıyor... 👗</div>';
+            
             const prompt = `Stil danışmanısın. ${safeCity} şehrinde ${date} tarihinde hava: Sabah ${Math.round(m.main.temp)}C ${m.weather[0].main}, Öğle ${Math.round(n.main.temp)}C, Akşam ${Math.round(e.main.temp)}C. Kullanıcıya kısa, samimi, emojili kıyafet önerisi ver. Türkçe.`;
+            
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                // MODELİ 1.5 FLASH OLARAK GÜNCELLEDİM 👇 (Daha stabil)
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
                     method: 'POST', headers: {'Content-Type':'application/json'},
                     body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})
                 });
+                
+                if (!res.ok) {
+                    throw new Error(`Hata: ${res.status}`);
+                }
+
                 const data = await res.json();
                 div.innerHTML = data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-            } catch(e) { div.innerHTML = "Bağlantı hatası."; }
+            
+            } catch(error) { 
+                div.innerHTML = `<span style="color:red; font-size:12px;">⚠️ ${error.message} - Lütfen 1 dk bekleyin.</span>`; 
+                console.error(error);
+            }
         }
     </script>
-</body>
-</html>

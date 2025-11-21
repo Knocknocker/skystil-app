@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SkyStil - Hava Durumu & Stil Asistanı</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4facfe;
+            --secondary-color: #00f2fe;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            background-color: #333;
+        }
+
+        #dynamic-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center; z-index: -2;
+            transition: background-image 0.8s ease-in-out;
+            animation: breathe 20s infinite alternate;
+        }
+        @keyframes breathe { from { transform: scale(1); } to { transform: scale(1.1); } }
+        body::after {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); z-index: -1; backdrop-filter: blur(3px);
+        }
+
+        .phone-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            width: 90%; max-width: 420px; height: 85vh;
+            border-radius: 40px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            overflow-y: auto; position: relative; display: flex; flex-direction: column;
+        }
+        .phone-container::-webkit-scrollbar { display: none; }
+
+        .header {
+            padding: 30px 25px 15px; text-align: center; flex-shrink: 0;
+        }
+        
+        /* --- LOGO DÜZELTMESİ YAPILAN KISIM --- */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            overflow: visible; /* Taşan kısımları gizleme */
+        }
+        .logo-icon {
+            font-size: 42px; 
+            margin-right: 10px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+            animation: floatIcon 3s ease-in-out infinite; 
+        }
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .app-title {
+            margin: 0; font-size: 38px; 
+            line-height: 1; letter-spacing: -1.5px;
+            display: flex; /* Hizalamayı garantiye al */
+            align-items: baseline;
+        }
+        .sky-text {
+            color: var(--text-dark);
+            font-weight: 300; 
+        }
+        .stil-text {
+            font-weight: 800; 
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-style: italic;
+            margin-left: -2px;
+            padding-right: 10px; /* DÜZELTME BURADA: Sağa boşluk bırakıldı */
+            display: inline-block; /* DÜZELTME: Padding'in çalışması için blok yapıldı */
+        }
+        /* ------------------------------------- */
+
+        .location-badge {
+            background: white; color: var(--text-dark); padding: 8px 20px; border-radius: 30px;
+            font-size: 14px; font-weight: 600; display: inline-flex; align-items: center;
+            margin-top: 5px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.2s;
+        }
+        .location-badge:hover { transform: scale(1.05); }
+
+        .search-box {
+            display: none; margin-top: 15px; background: white; padding: 5px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .search-input {
+            padding: 8px 15px; border: none; outline: none; width: 65%; text-align: left; font-family: inherit; font-size: 14px; background: transparent;
+        }
+        .search-btn {
+            background: var(--primary-color); color: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; font-size: 14px; margin-left: 5px;
+        }
+
+        .days-container {
+            display: flex; justify-content: space-between; padding: 10px 20px; gap: 8px; flex-shrink: 0;
+        }
+        .day-btn {
+            flex: 1; border: none; background: rgba(255,255,255,0.6); border-radius: 20px; padding: 10px 2px; text-align: center; cursor: pointer; transition: all 0.3s; min-width: 0;
+        }
+        .day-btn.active {
+            background: var(--primary-color); color: white; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+        .d-name { font-weight: 700; font-size: 12px; margin-bottom: 2px; display: block;}
+        .d-temp { font-size: 13px; display: block;}
+
+        .content-area { padding: 20px; flex-grow: 1; }
+        #selected-date-title { margin: 0 0 15px 0; color: var(--text-dark); font-size: 16px; text-align: center; font-weight: 600; }
+
+        .timeline-box {
+            background: white; border-radius: 25px; padding: 15px; display: flex; justify-content: space-between; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+        .time-slot { text-align: center; flex: 1; border-right: 1px solid #f0f0f0; }
+        .time-slot:last-child { border-right: none; }
+        .ts-label { font-size: 11px; color: var(--text-light); font-weight: 700; margin-bottom: 5px; }
+        .ts-icon { font-size: 28px; margin: 5px 0; display: block; }
+        .ts-temp { font-size: 18px; font-weight: 700; color: var(--text-dark); }
+        .ts-wind { font-size: 10px; color: #999; margin-top: 2px; }
+
+        .ai-box {
+            background: white; border-radius: 25px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-left: 4px solid var(--primary-color);
+        }
+        .ai-title { font-size: 13px; font-weight: 700; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
+        .ai-text { color: var(--text-dark); font-size: 14px; line-height: 1.6; }
+        
+        .sim-warning { background: #ffeba7; font-size: 11px; text-align: center; padding: 5px; display: none; width: 100%; position: absolute; top:0; z-index: 10; }
+        .loading-pulse { animation: pulse 1.5s infinite; color: var(--primary-color); font-weight: 600; text-align: center; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <div id="dynamic-bg"></div>
+
+    <div class="phone-container">
+        <div id="sim-warning" class="sim-warning">⚠️ Test Modu</div>
+        
+        <div class="header">
+            <div class="logo-container">
+                <span class="logo-icon">🌤️</span>
+                <h1 class="app-title">
+                    <span class="sky-text">Sky</span><span class="stil-text">Stil</span>
+                </h1>
+            </div>
+            
+            <div id="location-badge" class="location-badge" onclick="toggleSearch()">
+                <span style="margin-right:5px">📍</span> <span id="loc-text">Konum...</span>
+            </div>
+
+            <div id="search-box" class="search-box" style="display: flex; align-items: center;">
+                <input type="text" id="city-input" class="search-input" placeholder="Şehir (örn: Roma)">
+                <button onclick="searchCity()" class="search-btn">🔍</button>
+            </div>
+        </div>
+
+        <div class="days-container" id="days-wrapper"></div>
+
+        <div class="content-area">
+            <h3 id="selected-date-title">-</h3>
+            <div class="timeline-box" id="timeline-view"></div>
+            <div class="ai-box">
+                <span class="ai-title">✨ Stil Asistanın</span>
+                <div id="ai-result" class="ai-text">
+                    <div class="loading-pulse">Veriler işleniyor...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WEATHER_API_KEY = "bbf6173c6ac5f37e5daf19452e460d19";
+        const GEMINI_API_KEY = "AIzaSyAGdradWtxS8d2z8fKRkymtSFYPUrxAqcU"; 
+
+        const backgrounds = {
+            Clear: "url('https://images.unsplash.com/photo-1601297183305-6df142704ea2?q=80&w=1000&auto=format&fit=crop')",
+            Clouds: "url('https://images.unsplash.com/photo-1534088568595-a066f410bcda?q=80&w=1000&auto=format&fit=crop')",
+            Rain: "url('https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=1000&auto=format&fit=crop')",
+            Snow: "url('https://images.unsplash.com/photo-1477601263568-180e2c6d046e?q=80&w=1000&auto=format&fit=crop')",
+            Thunderstorm: "url('https://images.unsplash.com/photo-1605727216801-e27ce1ca8728?q=80&w=1000&auto=format&fit=crop')",
+            Drizzle: "url('https://images.unsplash.com/photo-1541919329513-35f7af297129?q=80&w=1000&auto=format&fit=crop')",
+            Mist: "url('https://images.unsplash.com/photo-1485236715568-ddc5ee6ca227?q=80&w=1000&auto=format&fit=crop')",
+            Default: "url('https://images.unsplash.com/photo-1500964757637-c85e8a162699?q=80&w=1000&auto=format&fit=crop')"
+        };
+
+        let groupedDays = {};
+        let currentCityName = "";
+
+        window.onload = function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    getWeather(pos.coords.latitude, pos.coords.longitude);
+                }, () => { getWeather(41.0082, 28.9784); });
+            } else { getWeather(41.0082, 28.9784); }
+        };
+
+        function toggleSearch() {
+            const box = document.getElementById('search-box');
+            const badge = document.getElementById('location-badge');
+            if(box.style.display === 'flex') { box.style.display='none'; badge.style.display='inline-flex'; }
+            else { badge.style.display='none'; box.style.display='flex'; document.getElementById('city-input').focus(); }
+        }
+
+        async function searchCity() {
+            const city = document.getElementById('city-input').value;
+            if (!city) return;
+            const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${WEATHER_API_KEY}`;
+            try {
+                const response = await fetch(geoUrl);
+                const data = await response.json();
+                if (data.length > 0) {
+                    toggleSearch();
+                    currentCityName = data[0].name;
+                    document.getElementById('loc-text').innerText = `${data[0].name}, ${data[0].country}`;
+                    getWeather(data[0].lat, data[0].lon, true);
+                } else { alert("Şehir bulunamadı."); }
+            } catch (e) { alert("Hata."); }
+        }
+
+        document.getElementById("city-input").addEventListener("keypress", function(e) { if (e.key === "Enter") searchCity(); });
+
+        async function getWeather(lat, lon, manual=false) {
+            try {
+                const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=tr`);
+                if(!response.ok) throw new Error();
+                const data = await response.json();
+                if(!manual) {
+                    currentCityName = data.city.name;
+                    document.getElementById('loc-text').innerText = currentCityName;
+                }
+                document.getElementById('sim-warning').style.display = 'none';
+                processData(data.list);
+            } catch (e) {
+                document.getElementById('sim-warning').style.display = 'block';
+                processData(createFakeData());
+                currentCityName = "İstanbul";
+                document.getElementById('loc-text').innerText = "İstanbul (Test)";
+            }
+        }
+
+        function createFakeData() {
+            let arr = []; let now = Math.floor(Date.now()/1000);
+            for(let i=0; i<5; i++) {
+                let s = now + (i*86400);
+                arr.push({dt:s+36000, dt_txt:"09:00", main:{temp:20}, weather:[{main:'Clear'}], wind:{speed:5}});
+                arr.push({dt:s+54000, dt_txt:"15:00", main:{temp:25}, weather:[{main:'Clear'}], wind:{speed:10}});
+                arr.push({dt:s+75600, dt_txt:"21:00", main:{temp:15}, weather:[{main:'Clouds'}], wind:{speed:15}});
+            }
+            return arr;
+        }
+
+        function processData(list) {
+            groupedDays = {};
+            list.forEach(item => {
+                const date = new Date(item.dt*1000).toLocaleDateString('tr-TR', {weekday:'long', day:'numeric', month:'long'});
+                const short = new Date(item.dt*1000).toLocaleDateString('tr-TR', {weekday:'short', day:'numeric'});
+                if(!groupedDays[date]) groupedDays[date] = {full:date, short:short, hours:[]};
+                groupedDays[date].hours.push(item);
+            });
+            renderButtons();
+        }
+
+        function renderButtons() {
+            const wrapper = document.getElementById('days-wrapper');
+            wrapper.innerHTML = '';
+            const keys = Object.keys(groupedDays).slice(0,5);
+            keys.forEach((key, i) => {
+                const day = groupedDays[key];
+                const temp = Math.round((day.hours[Math.floor(day.hours.length/2)] || day.hours[0]).main.temp);
+                const btn = document.createElement('div');
+                btn.className = `day-btn ${i===0?'active':''}`;
+                btn.innerHTML = `<span class="d-name">${day.short}</span><span class="d-temp">${temp}°</span>`;
+                btn.onclick = () => {
+                    document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectDay(key);
+                };
+                wrapper.appendChild(btn);
+            });
+            if(keys.length>0) selectDay(keys[0]);
+        }
+
+        function selectDay(key) {
+            const day = groupedDays[key];
+            document.getElementById('selected-date-title').innerText = day.full;
+            const m = findHour(day.hours, 9);
+            const n = findHour(day.hours, 15);
+            const e = findHour(day.hours, 21);
+            renderTimeline(m, n, e);
+            askGemini(currentCityName, day.full, m, n, e);
+            const mainWeather = n ? n.weather[0].main : (m ? m.weather[0].main : 'Default');
+            changeBackground(mainWeather);
+        }
+
+        function changeBackground(weather) {
+            const bgDiv = document.getElementById('dynamic-bg');
+            const imgUrl = backgrounds[weather] || backgrounds.Default;
+            bgDiv.style.backgroundImage = imgUrl;
+        }
+
+        function findHour(list, h) {
+            if(!list.length) return null;
+            return list.reduce((p,c) => {
+                const pH = new Date(p.dt*1000).getHours();
+                const cH = new Date(c.dt*1000).getHours();
+                return (Math.abs(cH-h) < Math.abs(pH-h) ? c : p);
+            });
+        }
+
+        function renderTimeline(m,n,e) {
+            if(!m)m=n||e; if(!n)n=m||e; if(!e)e=n||m;
+            const list = [{l:'SABAH',d:m}, {l:'ÖĞLE',d:n}, {l:'AKŞAM',d:e}];
+            let html = '';
+            list.forEach(p => {
+                const icon = getIcon(p.d.weather[0].main);
+                html += `<div class="time-slot"><div class="ts-label">${p.l}</div><div class="ts-icon">${icon}</div><div class="ts-temp">${Math.round(p.d.main.temp)}°</div><div class="ts-wind">💨 ${Math.round(p.d.wind.speed)}</div></div>`;
+            });
+            document.getElementById('timeline-view').innerHTML = html;
+        }
+
+        function getIcon(m) {
+            if(m.includes('Clear')) return '☀️';
+            if(m.includes('Clouds')) return '☁️';
+            if(m.includes('Rain')) return '🌧️';
+            if(m.includes('Snow')) return '❄️';
+            return '⛅';
+        }
+
+        async function askGemini(city, date, m, n, e) {
+            const div = document.getElementById('ai-result');
+            let safeCity = city || "Bulunduğun Yer";
+            if(safeCity.includes("Konum")) safeCity = "İstanbul";
+            div.innerHTML = '<div class="loading-pulse">Gardırop karıştırılıyor... 👗</div>';
+            const prompt = `Stil danışmanısın. ${safeCity} şehrinde ${date} tarihinde hava: Sabah ${Math.round(m.main.temp)}C ${m.weather[0].main}, Öğle ${Math.round(n.main.temp)}C, Akşam ${Math.round(e.main.temp)}C. Kullanıcıya kısa, samimi, emojili kıyafet önerisi ver. Türkçe.`;
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST', headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+                });
+                const data = await res.json();
+                div.innerHTML = data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            } catch(e) { div.innerHTML = "Bağlantı hatası."; }
+        }
+    </script>
+</body>
+</html>

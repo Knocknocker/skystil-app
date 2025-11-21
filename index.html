@@ -231,7 +231,7 @@
 
         // ⚠️ 2) Backend adresin – deploy edince burayı değiştireceksin
         // Örn: const BACKEND_URL = "https://skystil-backend.onrender.com";
-        const BACKEND_URL = "https://BACKEND_URLINI_BURAYA_YAZ";
+        const BACKEND_URL = "https://skystil-backend.onrender.com";
 
         const backgrounds = {
             Clear: "url('https://images.unsplash.com/photo-1601297183305-6df142704ea2?q=80&w=1000&auto=format&fit=crop')",
@@ -359,7 +359,7 @@
             const e = findHour(day.hours, 21);
             renderTimeline(m, n, e);
             
-            if (!BACKEND_URL || BACKEND_URL.includes("BACKEND_URLINI_BURAYA_YAZ")) {
+            if (!BACKEND_URL || BACKEND_URL.includes("https://skystil-backend.onrender.com")) {
                 document.getElementById('ai-result').innerHTML = '<b style="color:red">Önce backend URL\'ini JS içindeki BACKEND_URL değişkenine yazmalısın.</b>';
             } else {
                 askGemini(currentCityName, day.full, m, n, e);

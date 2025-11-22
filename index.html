@@ -248,12 +248,22 @@
         let currentCityName = "";
 
         window.onload = function() {
+            // 🔥 Backend'i sessizce uyandır
+            fetch(BACKEND_URL)
+                .catch(() => {
+                    console.warn("Backend uyanırken hata oldu (ilk çağrı).");
+                });
+
+            // Sonra hava durumunu çek
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((pos) => {
                     getWeather(pos.coords.latitude, pos.coords.longitude);
                 }, () => { getWeather(41.0082, 28.9784); });
-            } else { getWeather(41.0082, 28.9784); }
+            } else { 
+                getWeather(41.0082, 28.9784); 
+            }
         };
+
 
         function toggleSearch() {
             const box = document.getElementById('search-box');
@@ -438,3 +448,4 @@
     </script>
 </body>
 </html>
+
